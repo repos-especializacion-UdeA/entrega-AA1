@@ -1,5 +1,5 @@
 """
-Nombre del archivo: funciones.py
+Nombre del archivo: funciones1.py
 Autor: Jorge Bedoya 
 Descripción: Funciones del curso de Aprendizaje Automatico 1
 """
