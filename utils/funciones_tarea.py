@@ -1,4 +1,5 @@
 import os
+import matplotlib.pylab as plt
 
 # Promt to @Chat-GPT: obtener la lista de archivos .mat de un directorio en python
 def obtener_archivos_mat(directorio):
@@ -42,3 +43,62 @@ def crear_lista_markdown(lista):
         lista_markdown += f"- {elemento}\n"
     return lista_markdown
 
+####################################################################################################
+# Funciones sobre las señales
+####################################################################################################
+
+
+# Numero del estimulo
+def indice_numero(df, num):
+  return (df.index[df == num][0],df.index[df == num][-1])
+
+# Cambios de nivel
+def detectar_cambios_nivel(data, valor):
+    cambios = []
+    for i in range(1, len(data)):
+        if data[i] == valor and data[i-1] != valor:
+            cambios.append((i-1,0))
+            cambios.append((i,valor))
+        elif data[i] != valor and data[i-1] == valor:
+            cambios.append((i-1,valor))
+            cambios.append((i,0))
+    cambios.pop(0)
+    cambios.pop()
+    return cambios
+
+
+####################################################################################################
+# Funciones de graficado
+####################################################################################################
+
+def graficar_medida(medida, 
+                    fs = None,
+                    columnas = None, 
+                    titulo = None, 
+                    etiqueta_x = None, 
+                    etiqueta_y = None):
+    plt.figure(figsize=(20, 4))  # Tamaño del gráfico
+
+    # Iterar sobre cada columna en la lista de columnas
+    if (columnas is None or len(columnas) > 1):
+        for columna in columnas:
+            plt.plot(medida.index, medida[columna], label=columna)  # Graficar cada columna
+    elif (len(columnas) == 1):
+        plt.plot(medida.index, medida.iloc[:, 0], label = columnas[0])  # Graficar cada columna
+
+
+    # Añadir títulos y etiquetas
+    plt.title(titulo)
+    plt.xlabel(etiqueta_x)
+    plt.ylabel(etiqueta_y)
+    plt.legend()  # Añadir la leyenda para distinguir las columnas
+    plt.grid(True)  # Añadir cuadrícula
+    plt.show()
+
+    """
+    graficar_varias_columnas(emgs,
+                         columnas = emgs.columns,
+                         titulo = "Grafico canales EMG",
+                         etiqueta_x="n",
+                         etiqueta_y="Amplitud")
+    """
