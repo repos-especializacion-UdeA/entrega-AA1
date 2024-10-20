@@ -1,6 +1,6 @@
 #Encapsulation of a key function that some filters require
 
-# Codigo de: https://github.com/cancui/EMG-Signal-Processing-Library
+# Repo del codigo: https://github.com/cancui/EMG-Signal-Processing-Library
 
 class Moving_Average(object):
     def __init__(self, length, return_int = False):
@@ -110,4 +110,3 @@ class PkPk(object):
     def advanced_get_pkpk(self):
         pass
 
-print "End"
