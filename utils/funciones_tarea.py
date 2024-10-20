@@ -1,5 +1,9 @@
 import os
 import matplotlib.pylab as plt
+import scipy.io
+from scipy import signal
+import pandas as pd
+import numpy as np
 
 # Promt to @Chat-GPT: obtener la lista de archivos .mat de un directorio en python
 def obtener_archivos_mat(directorio):
@@ -78,16 +82,33 @@ def graficar_medida(medida,
                     etiqueta_x = None, 
                     etiqueta_y = None):
     plt.figure(figsize=(20, 4))  # Tamaño del gráfico
-
+    
     # Iterar sobre cada columna en la lista de columnas
-    if (columnas is None or len(columnas) > 1):
-        for columna in columnas:
-            plt.plot(medida.index, medida[columna], label=columna)  # Graficar cada columna
-    elif (len(columnas) == 1):
-        plt.plot(medida.index, medida.iloc[:, 0], label = columnas[0])  # Graficar cada columna
+    if fs is None:
+        t = medida.index
+    else:
+        t = 1/fs*medida.index
 
+    if not isinstance(medida, pd.DataFrame):
+        t = np.arange(0,len(medida))
+        if fs is not None:
+            t = 1/fs*t
+        plt.plot(t,medida)  # Graficar cada columna
+    else:
+        if (columnas is None):
+            columnas = medida.columns      
+        for columna in columnas:
+            plt.plot(t, medida[columna], label=columna)  # Graficar cada columna
 
     # Añadir títulos y etiquetas
+    if etiqueta_x is None: 
+        etiqueta_x = "muestras [n]"
+        if fs is not None:
+            etiqueta_x = "tiempo [s]"
+
+    if etiqueta_y is None: 
+        etiqueta_y = "Amplitud"
+    
     plt.title(titulo)
     plt.xlabel(etiqueta_x)
     plt.ylabel(etiqueta_y)
@@ -102,3 +123,20 @@ def graficar_medida(medida,
                          etiqueta_x="n",
                          etiqueta_y="Amplitud")
     """
+
+if __name__ == "__main__":
+    muestra_mat = scipy.io.loadmat("./S1_A1_E1.mat")
+    df_emg = pd.DataFrame(muestra_mat['emg'])
+    print(df_emg.shape)
+    df_restimulus = pd.DataFrame(muestra_mat['restimulus'])
+    print(df_restimulus.shape)
+    df_repetition = pd.DataFrame(muestra_mat['rerepetition'])
+    print(df_repetition.shape)
+    keys_mat_data = list(muestra_mat.keys())
+    column_names = keys_mat_data[3:]
+    # graficar_medida(df_emg)
+    # graficar_medida(df_emg, fs = 100)
+    # graficar_medida(df_emg, columnas = [0])    
+    # graficar_medida(df_emg, fs = 100, columnas = [0])    
+    # graficar_medida(df_emg[0])    
+    graficar_medida(df_emg[0], fs = 100)    
