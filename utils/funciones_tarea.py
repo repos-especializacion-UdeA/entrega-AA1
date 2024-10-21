@@ -124,6 +124,30 @@ def graficar_medida(medida,
                          etiqueta_y="Amplitud")
     """
 
+
+####################################################################################################
+# Funciones sobre las señales
+####################################################################################################
+
+
+
+def filter_data(data, 
+                f_sampling = 100, 
+                cutoff = 1,
+                butterworth_order = 2, 
+                btype = 'lowpass'):
+
+    nyquist = f_sampling/2
+    normal_cutoff = cutoff / nyquist
+    b, a = signal.butter(butterworth_order, normal_cutoff, btype)
+
+    data_filtered = pd.DataFrame()
+    for _col in range(data.shape[1]):
+        data_filtered[_col] = signal.filtfilt(b, a, data[_col])
+
+    return  data_filtered
+
+
 if __name__ == "__main__":
     muestra_mat = scipy.io.loadmat("./S1_A1_E1.mat")
     df_emg = pd.DataFrame(muestra_mat['emg'])
@@ -140,3 +164,4 @@ if __name__ == "__main__":
     # graficar_medida(df_emg, fs = 100, columnas = [0])    
     # graficar_medida(df_emg[0])    
     graficar_medida(df_emg[0], fs = 100)    
+
