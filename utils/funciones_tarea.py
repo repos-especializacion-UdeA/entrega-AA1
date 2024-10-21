@@ -5,10 +5,12 @@ from scipy import signal
 import pandas as pd
 import numpy as np
 
+
 # Promt to @Chat-GPT: obtener la lista de archivos .mat de un directorio en python
 def obtener_archivos_mat(directorio):
     """Obtiene una lista de todos los archivos .mat en un directorio dado."""
     archivos_mat = [archivo for archivo in os.listdir(directorio) if archivo.endswith('.mat')]
+    archivos_mat.sort()
     return archivos_mat
 
 # Promt to @Chat-GPT: crear tabla Markdown a partir de una lista 
@@ -81,7 +83,7 @@ def graficar_medida(medida,
                     titulo = None, 
                     etiqueta_x = None, 
                     etiqueta_y = None):
-    plt.figure(figsize=(20, 4))  # Tamaño del gráfico
+    plt.figure(figsize=(20, 5))  # Tamaño del gráfico
     
     # Iterar sobre cada columna en la lista de columnas
     if fs is None:
@@ -125,11 +127,77 @@ def graficar_medida(medida,
     """
 
 
+def graficar_medida2(medida, 
+                     columnas = None, 
+                     labels = None,
+                     num = 0, 
+                     fs = None,
+                     titulo=None, 
+                     etiqueta_x=None, 
+                     etiqueta_y=None):
+    [inicio,fin]= indice_numero(labels, num)
+    num_puntos = fin - inicio
+    ban_end = False
+    ban_add_vertical_lines = False
+    lim = [0 , 0]
+    limites_x = []
+
+    """
+    IMPORTANTE: Aun no funciona para graficar en escala de segundos
+    """
+
+    # Si se especifica num_puntos, selecciona solo los primeros num_puntos de la Serie
+    fig, ax = plt.subplots(figsize=(20, 5))
+    
+    # Iterar sobre cada columna en la lista de columnas
+    
+
+
+    if num_puntos:
+        if (columnas is None):
+            columnas = medida.columns      
+        for columna in columnas:
+            df_col = medida[columna].iloc[inicio:inicio + num_puntos]
+            if fs is None:
+                t = df_col.index
+            else:
+                t = 1/fs*df_col.index
+            plt.plot(t, df_col, label=columna)  # Graficar cada columna
+
+
+
+    cambios_nivel = detectar_cambios_nivel(labels, num)
+    # Añadir las bandas verticales sombreadas con los límites proporcionados
+    for cambio_nivel in cambios_nivel:
+      if(cambio_nivel[1] == 0):
+        if ban_end == False:
+          lim[0] = cambio_nivel[0]
+          ban_end = True
+        else:
+          lim[1] = cambio_nivel[0]
+          ban_end = False
+          ax.axvspan(lim[0], lim[1], color='gray', alpha=0.3, label=f'Sombreado entre {lim[0]} y {lim[1]}')
+
+    # Añadir títulos y etiquetas
+    if etiqueta_x is None: 
+        etiqueta_x = "muestras [n]"
+        if fs is not None:
+            etiqueta_x = "tiempo [s]"
+
+    if etiqueta_y is None: 
+        etiqueta_y = "Amplitud"
+
+    plt.title(titulo)
+    plt.xlabel(etiqueta_x)
+    plt.ylabel(etiqueta_y)
+    plt.grid(True)  # Activa la cuadrícula
+    plt.show()
+
+
+
 ####################################################################################################
 # Funciones sobre las señales
 ####################################################################################################
-
-
 
 def filter_data(data, 
                 f_sampling = 100, 
@@ -142,7 +210,7 @@ def filter_data(data,
     b, a = signal.butter(butterworth_order, normal_cutoff, btype)
 
     data_filtered = pd.DataFrame()
-    for _col in range(data.shape[1]):
+    for _col in data.columns:
         data_filtered[_col] = signal.filtfilt(b, a, data[_col])
 
     return  data_filtered
@@ -163,5 +231,31 @@ if __name__ == "__main__":
     # graficar_medida(df_emg, columnas = [0])    
     # graficar_medida(df_emg, fs = 100, columnas = [0])    
     # graficar_medida(df_emg[0])    
-    graficar_medida(df_emg[0], fs = 100)    
+    # graficar_medida(df_emg[0], fs = 100)
+    s_filt =  filter_data(df_emg)  
+    # graficar_medida(s_filt, fs = 100)
+    # print(detectar_cambios_nivel(df_restimulus[0], 1))
+    print(df_emg.head())
+    
+    print(s_filt.head())
+    
+    """
+    graficar_medida2(s_filt, 
+                     labels = df_restimulus[0],
+                     num = 1, 
+                     fs = None,
+                     titulo="Señales EMG", 
+                     etiqueta_x=None, 
+                     etiqueta_y=None)
+    """
+    graficar_medida2(s_filt, 
+                     columnas = [0,1,2], 
+                     labels = df_restimulus[0],
+                     num = 1, 
+                     fs = None,
+                     titulo="Señales EMG", 
+                     etiqueta_x=None, 
+                     etiqueta_y=None)
+    
+
 
